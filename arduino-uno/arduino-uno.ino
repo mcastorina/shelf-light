@@ -1,4 +1,5 @@
 #include <PololuLedStrip.h>
+#include <LowPower.h>
 
 int getHueFromSensor();
 void hsv2rgb(unsigned char*, unsigned char*, unsigned char*, float, float, float);
@@ -35,7 +36,7 @@ void loop() {
     ledStrip.write(colors, LED_COUNT);
 
 end_loop:
-    delay(100);
+    LowPower.powerDown(SLEEP_120MS, ADC_OFF, BOD_OFF);
 }
 
 int getHueFromSensor() {
