@@ -2,6 +2,7 @@
 
 int getHueFromSensor();
 void hsv2rgb(unsigned char*, unsigned char*, unsigned char*, float, float, float);
+int stableAnalogRead(int);
 
 // Create an ledStrip object and specify the pin it will use.
 PololuLedStrip<12> ledStrip;
@@ -30,7 +31,7 @@ void loop() {
 
 int getHueFromSensor() {
     // read the value from the sensor:
-    long sensorValue = analogRead(potPin);
+    long sensorValue = stableAnalogRead(potPin);
     long h = sensorValue * 6 / 25 + 120;
     if (h >= 360) {
         h = 0;
@@ -87,4 +88,14 @@ void hsv2rgb(unsigned char *r, unsigned char *g, unsigned char *b, float h, floa
             *b = 255 * q;
             break;
     }
+}
+
+// max 64 without overflow
+#define READ_COUNT (10)
+int stableAnalogRead(int pin) {
+    unsigned int sum = 0;
+    for (int i = 0; i < READ_COUNT; i++) {
+        sum += analogRead(pin);
+    }
+    return sum / READ_COUNT;
 }
