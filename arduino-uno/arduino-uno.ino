@@ -14,18 +14,27 @@ rgb_color colors[LED_COUNT];
 
 void setup() {}
 
+unsigned int lastHue = -1;
 void loop() {
-    unsigned int h = getHueFromSensor();
     rgb_color color;
+    unsigned int h = getHueFromSensor();
+    if (h == lastHue) {
+        goto end_loop;
+    }
+    lastHue = h;
+
+    // convert hue to rgb
     hsv2rgb(&color.red, &color.green, &color.blue, h, 1, 1);
 
-    // Update the colors buffer.
+    // update the colors buffer
     for(uint16_t i = 0; i < LED_COUNT; i++) {
         colors[i] = color;
     }
 
-    // Write to the LED strip.
+    // write to the led strip
     ledStrip.write(colors, LED_COUNT);
+
+end_loop:
     delay(100);
 }
 
