@@ -1,0 +1,24 @@
+led current draw
+================
+hue    | value=1  value=0.5  value=0.3  value=0.1
+-------+-----------------------------------------
+all on | 0.5A     n/a        n/a        n/a
+warm   | 0.48A    0.37A      0.24A      0.11A
+middle | 0.46A    0.39A      0.24A      0.14A
+cold   | 0.43A    0.36A      0.24A      0.12A
+
+mcu current draw
+================
+8.5mA
+
+total maximum current draw
+==========================
+approximately 525mA
+
+37000mAh / 525mA = 70h usage time
+70h / (3h/day) = 23 days
+
+SUMMARY
+=======
+A 37000mAh power bank will last approximately 3 weeks before needing
+a recharge, if used daily for 3 hours.
