@@ -28,6 +28,7 @@
 #define RIGHT_JUST  (1)
 #define LEFT_JUST   (0)
 #define CH4         (0b000100)
+#define CH5         (0b000101)
 
 typedef int16_t fixed_point;
 #define FP_1_10 (10)
@@ -140,7 +141,8 @@ uint16_t adc() {
 }
 
 #define NUM_ADC_READS   (10)
-uint16_t stable_adc() {
+uint16_t stable_adc(uint8_t channel) {
+    ADCON0bits.CHS = channel;
     uint16_t sum = 0;
     for (uint8_t i = 0; i < NUM_ADC_READS; i++) {
         sum += adc();
@@ -148,12 +150,28 @@ uint16_t stable_adc() {
     return sum / NUM_ADC_READS;
 }
 
-uint16_t hue_from_sensor() {
-    uint16_t h = stable_adc() * 6 / 25 + 120;
+int16_t hue_from_sensor(uint8_t channel) {
+    uint16_t h = stable_adc(channel) * 6 / 25 + 120;
     if (h >= 360) {
         h = 0;
     }
     return h;
+}
+int16_t val_from_sensor(uint8_t channel) {
+    return stable_adc(channel) / 10;
+}
+
+uint16_t dist(int16_t a, uint16_t b) {
+    if (b > a) {
+        int16_t tmp = a;
+        a = b;
+        b = tmp;
+    }
+    uint16_t res = a - b;
+    if (res > 180) {
+        res = 360 - res;
+    }
+    return res;
 }
 
 /*
@@ -166,25 +184,29 @@ int main(int argc, char** argv) {
 
     // Setup analog input on A4
     TRISAbits.TRISA4 = INPUT;
+    TRISAbits.TRISA5 = INPUT;
     ANSELAbits.ANSA4 = HIGH;
-    ADCON0bits.CHS = CH4;
+    ANSELAbits.ANSA5 = HIGH;
     ADCON1bits.ADPREF = VDD_REF;
     ADCON1bits.ADCS = FOSC_DIV_16;
     ADCON1bits.ADFM = RIGHT_JUST;
-    ADCON0bits.ADON = 1;
+    ADCON0bits.ADON = HIGH;
 
     // TODO: properly wait for oscillator to stabilize
     __delay_ms(500);
 
-    uint16_t last_value = 0x00;
+    int16_t last_hue = 0x00;
+    int16_t last_val = 0x00;
     uint8_t r, g, b;
     while (1) {
-        uint16_t hue = hue_from_sensor();
-        if (hue != last_value) {
-            hsv2rgb(&r, &g, &b, hue, FP_1, FP_2_10);
+        int16_t hue = hue_from_sensor(CH4);
+        int16_t val = val_from_sensor(CH5);
+        if (dist(last_hue, hue) > 10 || dist(last_val, val) > 2) {
+            hsv2rgb(&r, &g, &b, hue, FP_1, val);
             write_leds(g, r, b);
+            last_hue = hue;
+            last_val = val;
         }
-        last_value = hue;
         __delay_ms(100);
     }
 
